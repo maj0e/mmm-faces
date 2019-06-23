@@ -1,4 +1,7 @@
 training.xml
 *.pyc
 node_modules
+__pycache__
+*.jpg
+*.png
 .DS_Store
