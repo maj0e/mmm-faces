@@ -13,13 +13,19 @@ import pathlib
 import os
 import cv2
 
-def train_from_webcam(name, path, detector):
-    cap = cv2.VideoCapture(0)
+def webcamSaveImages(name, path, detector):
+    cap = cv2.VideoCapture("../../../Test_video_gesichterkennung.mp4") # 0 -> Standard Camera Device
+    if not cap.isOpened():
+        print ("Couldn't load video stream. Terminating...\n")
+        exit()
+        
     count = 0
     process_this_frame = True
     while(cap.isOpened()):
         # Grab a single frame of video
-        ret, frame = cap.read()
+        success, frame = cap.read()
+        if not success:
+            continue
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
         rgb_small_frame = small_frame[..., ::-1]
         # Only process every other frame of video to save time
@@ -58,9 +64,13 @@ def train_from_webcam(name, path, detector):
             break
 
     # Release handle to the webcam
-    video_capture.release()
+    cap.release()
     cv2.destroyAllWindows()
     print(count + " images were saved from Webcam for user" + name + "\n")
+
+############################################################################
+###### Beginn of Skript  ######
+###############################
 
 # Init face detection and recognition
 # TODO: For know just use defaults, later on we should use the requested method from config 
@@ -71,16 +81,16 @@ face_recognizer.alignFace = True
 #Initialize the config handler
 #config =  config.ConfigHanlder()
 
-print("####################################################################\n")
-print("Welcome to the training script for MMM-Faces. \n")
-print("This tool is used to generate the face encodings for the dlib face recognition algorithm.\n")
+print("\n####################################################################")
+print("Welcome to the training script for MMM-Faces.")
+print("This tool is used to generate the face encodings for the dlib face recognition algorithm.")
 print("It's not meant to train the classic openCV algorithms.")
-print("####################################################################\n\n")
+print("####################################################################\n")
 
 # Get right directory
 training_dir = "../models/training_images" #TODO:config.get("SOMETHING_IF_HAVE TO FIGURE_OUT")
 if not os.path.isdir(training_dir):
-    print("The training directory doesn't exist. Do you want to specify an alternative directory?    [y/n]\n")
+    print("The training directory doesn't exist. Do you want to specify an alternative directory?    [y/n]")
     answer = input("--> ")
     if (answer == "y" or answer == "Y"):
         training_dir = input("Enter alternative directory --> ")
@@ -90,23 +100,23 @@ if not os.path.isdir(training_dir):
         print("This directory doesn't exist either. Terminating....\n")
         exit()
 
-print("Do you want to take additional images with your webcam, before generating the encodings?    [y/n]\n")
+print("Do you want to take additional images with your webcam, before generating the encodings?    [y/n]")
 takeImages = input("--> ")
 
-if (takeImages == 'y' or takeimages == "Y"):
-    print("Enter the name of the user? \n")
+if (takeImages == 'y' or takeImages == "Y"):
+    print("\nEnter the name of the user? ")
     newUser = input("--> ")
     print("Images will be saved for User " + newUser + "\n")
     newUser_dir = training_dir + "/" +newUser
     pathlib.Path(newUser_dir).mkdir(exist_ok=True) #Make directory for user
-    train_from_webcam(newUser, newUser_dir, face_detector)
+    webcamSaveImages(newUser, newUser_dir, face_detector)
     
 
 
 print("Generating Encodings of saved images...\n")
 
 # For each directory in there create a user in user_list 
-user_list = [user_dir[0] for user_dir in os.walk(config.get("training_dir"))]
+user_list = [user_dir[0] for user_dir in os.walk(training_dir)]
 
 
 ##### Measure time for comparison#####
@@ -121,7 +131,11 @@ for user in user_list:
         #TODO: remove user from user_list
         print("Skipping User " + user + ": No Images found\n")
         continue
-    
+    #elif len(images) == 1:
+        #TODO: compute just one face encoding
+    #else:
+        #TODO:
+
     print("Processing images for User" + user + "...\n")
 
     face_encoding = np.zero([128])
