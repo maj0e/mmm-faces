@@ -143,9 +143,14 @@ class FaceRecognizer_DLIB:
     alignFace = True
     tolerance = 0.6
     
-    def __init__(self, model_location):
+    def __init__(self, model_location, descriptor_location = None):
         self.model = dlib.face_recognition_model_v1(model_location)
         # Load the descriptors for all known faces
+        if descriptor_location != None:
+            self.loadDescriptors(descriptor_location)
+    
+    def loadDescriptors(fileName):
+        fileName
     
     def faceEncoding(self, face):
         if alignFace == False:

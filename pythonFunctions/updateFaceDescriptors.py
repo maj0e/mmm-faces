@@ -69,7 +69,8 @@ def webcamSaveImages(name, path, detector):
     print(count + " images were saved from Webcam for user" + name + "\n")
 
 ############################################################################
-###### Beginn of Skript  ######
+###############################
+###### Begin of Skript   ######
 ###############################
 
 # Init face detection and recognition
@@ -88,17 +89,20 @@ print("It's not meant to train the classic openCV algorithms.")
 print("####################################################################\n")
 
 # Get right directory
-training_dir = "../models/training_images" #TODO:config.get("SOMETHING_IF_HAVE TO FIGURE_OUT")
-if not os.path.isdir(training_dir):
+image_dir = "../models/trainingImages" #config.get("image_dir")
+encodingsFile = "../models/face_encodings.txt"
+
+if not os.path.isdir(image_dir):
     print("The training directory doesn't exist. Do you want to specify an alternative directory?    [y/n]")
     answer = input("--> ")
     if (answer == "y" or answer == "Y"):
-        training_dir = input("Enter alternative directory --> ")
+        image_dir = input("Enter alternative directory --> ")
+        if not os.path.isdir(image_dir):
+            print("This directory doesn't exist either. Terminating....\n")
+            exit()
     else:
         exit()
-    if not os.path.isdir(training_dir):
-        print("This directory doesn't exist either. Terminating....\n")
-        exit()
+    
 
 print("Do you want to take additional images with your webcam, before generating the encodings?    [y/n]")
 takeImages = input("--> ")
@@ -107,7 +111,7 @@ if (takeImages == 'y' or takeImages == "Y"):
     print("\nEnter the name of the user? ")
     newUser = input("--> ")
     print("Images will be saved for User " + newUser + "\n")
-    newUser_dir = training_dir + "/" +newUser
+    newUser_dir = image_dir + "/" +newUser
     pathlib.Path(newUser_dir).mkdir(exist_ok=True) #Make directory for user
     webcamSaveImages(newUser, newUser_dir, face_detector)
     
@@ -116,7 +120,7 @@ if (takeImages == 'y' or takeImages == "Y"):
 print("Generating Encodings of saved images...\n")
 
 # For each directory in there create a user in user_list 
-user_list = [user_dir[0] for user_dir in os.walk(training_dir)]
+user_list = [user_dir[1] for user_dir in os.walk(image_dir)][0] # user_dir[1]: first subfolder layer, [.....][0] of main dir
 
 
 ##### Measure time for comparison#####
@@ -127,6 +131,9 @@ recognition_counter = 0
 
 for user in user_list:
     #Load list of images in there
+    imageFiles = [file for file in os.listdir(img_dir + "/" + user)]
+    images = [cv2.imread(img) for img in imageFiles]
+    
     if len(images == 0):
         #TODO: remove user from user_list
         print("Skipping User " + user + ": No Images found\n")
@@ -135,7 +142,7 @@ for user in user_list:
         #TODO: compute just one face encoding
     #else:
         #TODO:
-
+    
     print("Processing images for User" + user + "...\n")
 
     face_encoding = np.zero([128])
@@ -152,13 +159,16 @@ print("Done!\n")
 if (takeImages == "y" or takeImages == "Y"):
     print("Do a check with current user: ...\n")
 else:
-    print("Do a little sanity check: Recognize training images again...\n")
-    ###
+    print("Do a little sanity check: Recognize training images again...")
+    #TODO:
 
     if (nFailures == 0):
-        print("Check succesful!\n")
+        print("Check succesful!")
     else:
         print("Check failed. That's pretty bad")
+
+print("Saving results to " + encodingsFile)
+#TODO: Which format?
 
 print("####################################################################\n")
 #Benchmarking results
