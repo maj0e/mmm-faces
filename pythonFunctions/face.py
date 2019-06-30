@@ -6,6 +6,7 @@ Different face detection and recognition algorithms from dlib and openCV wrapped
 
 import cv2
 import dlib
+import pickle
 #import config
 
 ##### Face Detection ################################################
@@ -139,7 +140,6 @@ class FaceRecognizer_DLIB:
     model = None
     #function_args = None
     face_descriptors = None
-    user_list = None
     alignFace = True
     tolerance = 0.6
     
@@ -150,8 +150,10 @@ class FaceRecognizer_DLIB:
             self.loadDescriptors(descriptor_location)
     
     def loadDescriptors(fileName):
-        fileName
-    
+        # load data from pkl file
+        with open(fileName, "rb") as dataFile:
+            self.face_descriptors = pickle.load(dataFile)
+   
     def faceEncoding(self, face):
         if alignFace == False:
             return self.model.compute_face_descriptor(img, shape)
@@ -169,6 +171,7 @@ class FaceRecognizer_DLIB:
         else:
             return "Unknown"
 
+#TODO: Immplement this. Either use some predifined recognizer like openFace via openCV or write this such that, some custom model can be used
 class FaceRecognizer_DNN:
     """Face Recognition class, which wraps the OpenFace Dnn from OpenCV"""
     model = None
@@ -179,6 +182,7 @@ class FaceRecognizer_DNN:
     tolerance = 0.6
     
     def __init__(self):
+        #TODO: Immplement this
         print("implement this")
         
     def predict(self,):
@@ -227,3 +231,22 @@ def resize(image):
     """Resize a face image to the proper size for training and detection.
     """
     return cv2.resize(image, (config.FACE_WIDTH, config.FACE_HEIGHT), interpolation=cv2.INTER_LANCZOS4)
+
+def drawFaceLocation(image, detection, text = None, scaleFactor = 1):
+    # Scale back up face locations since the frame we detected in was scaled to 1/4 size
+    top = detection.top() * scaleFactor
+    right = detection.right() * scaleFactor
+    bottom = detection.bottom() * scaleFactor
+    left = detection.left() * scaleFactor
+    
+    #TODO: Beautify location makrer. Maybe rounded corners etc
+    # Draw a box around the face
+    cv2.rectangle(image, (left, top), (right, bottom), (0, 0, 255), 2)
+
+    if text != None:
+        # Draw a label with a name below the face
+        cv2.rectangle(image, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+        font = cv2.FONT_HERSHEY_DUPLEX
+        cv2.putText(image, text, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+
