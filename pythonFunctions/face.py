@@ -7,7 +7,6 @@ Different face detection and recognition algorithms from dlib and openCV wrapped
 import cv2
 import dlib
 import pickle
-#import config
 
 ##### Face Detection ################################################
 class FaceDetector_HOG:
@@ -15,13 +14,13 @@ class FaceDetector_HOG:
          Use this if you can't use a cuda enabled device and you encounter only frontal and slightly tilted faces.
     """
     model = None                                                                  # Detection Model: Set in Init
-    function_args = { "number_of_times_to_upsample" : 1} # Argument Dictionary passed to detect func
+    function_args = { "number_of_times_to_upsample" : 0} # Argument Dictionary passed to detect func
     
     def __init__(self):
         self.model = dlib.get_frontal_face_detector() #fastest on CPU
         
     def detect(self, image): 
-        faces =  self.model(image, 1)#**self.function_args)
+        faces =  self.model(image, **self.function_args)
         return chooseFace_dlib(faces)
     
 class FaceDetector_HAAR:
@@ -53,6 +52,7 @@ class FaceDetector_DNN:
         
     def __init__(self, modelFile, configFile):
         try:
+            #TODO: Decide for one model --> TF seems to be the winner
             DNN="TF"
             if DNN == "CAFFE":
                 #modelFile = "res10_300x300_ssd_iter_140000_fp16.caffemodel"
@@ -137,14 +137,23 @@ class FaceRecognizer_CLASSIC:
         
 class FaceRecognizer_DLIB:
     """Face Recognition class, which wraps Dlib's face recognizer."""
-    model = None
-    #function_args = None
-    face_descriptors = None
-    alignFace = True
-    tolerance = 0.6
+    _model = None
+    _shape_predictor = None
+    _tolerance = 0.6
     
-    def __init__(self, model_location, descriptor_location = None):
-        self.model = dlib.face_recognition_model_v1(model_location)
+    face_descriptors = None # Dictionary of all known face encodings
+ 
+    def __init__(self, model_location, shape_predictor_location, descriptor_location = None):
+        self._model = dlib.face_recognition_model_v1(model_location)
+        try: 
+            self._model = dlib.face_recognition_model_v1(model_location)
+            self._shape_predictor = dlib.shape_predictor(shape_predictor_location)
+            
+            if self._model == None or self._shape_predictor == None:
+                raise ValueError
+        except ValueError:
+            print("Could not load dlib recognizer models!\n")
+        
         # Load the descriptors for all known faces
         if descriptor_location != None:
             self.loadDescriptors(descriptor_location)
@@ -154,12 +163,10 @@ class FaceRecognizer_DLIB:
         with open(fileName, "rb") as dataFile:
             self.face_descriptors = pickle.load(dataFile)
    
-    def faceEncoding(self, face):
-        if alignFace == False:
-            return self.model.compute_face_descriptor(img, shape)
-        else:
-            face_chip = dlib.get_face_chip(img, shape)        
-            return self.model.compute_face_descriptor(face_chip)    
+    def faceEncoding(self, image, face):
+        shape = self._shape_predictor(image, face)
+        face_chip = dlib.get_face_chip(image, shape)  
+        return self._model.compute_face_descriptor(face_chip)    
         
     def predict(self, face):
         face_descriptor_in = self.faceEncoding(face)
@@ -174,18 +181,16 @@ class FaceRecognizer_DLIB:
 #TODO: Immplement this. Either use some predifined recognizer like openFace via openCV or write this such that, some custom model can be used
 class FaceRecognizer_DNN:
     """Face Recognition class, which wraps the OpenFace Dnn from OpenCV"""
-    model = None
-    function_args = None
+    _model = None
+    _function_args = None
+    _tolerance = 0.6
     face_descriptors = None
-    list_of_names = None
-    alignFace = True
-    tolerance = 0.6
     
     def __init__(self):
-        #TODO: Immplement this
+        #TODO: Implement this
         print("implement this")
         
-    def predict(self,):
+    def predict(self):
         return "Unknown"
 
 ##### Utility functions #####
@@ -214,7 +219,6 @@ def rect_ocv2dlib(dlib_rect):
     rect.width = dlib_rect.left() - dlib_rect.right()
     rect.height = dlib_rect.top() - dlib_rect.bottom()
     return rect
-
 
 def crop(image, x, y, w, h):
     """Crop box defined by x, y (upper left corner) and w, h (width and height)

@@ -16,6 +16,8 @@ import pathlib
 import os
 import cv2
 import pickle
+import time
+import numpy as np
 
 def webcamSaveImages(name, path, detector):
     cap = cv2.VideoCapture("../../../Test_video_gesichterkennung.mp4") # 0 -> Standard Camera Device
@@ -66,25 +68,24 @@ def webcamSaveImages(name, path, detector):
 
 ##### Initialize  Face Recognition and Settings ######
 
+#Initialize the config handler
+#config =  config.ConfigHanlder() TODO: Add json path: MM specific?
+
 # Init face detection and recognition
 # TODO: For know just use defaults, later on we should use the requested method from config 
 # TODO: Maybe provide fallback if config cant be used.
 face_detector = face.FaceDetector_HOG()
-face_recognizer = face.FaceRecognizer_DLIB("../models/dlib_face_recognition_resnet_model_v1.dat")
-face_recognizer.alignFace = True
+face_recognizer = face.FaceRecognizer_DLIB("../models/dlib_face_recognition_resnet_model_v1.dat", "../models/dlib_shape_predictor.dat")
 
-#Initialize the config handler
-#config =  config.ConfigHanlder() TODO: Add json path: MM speicific?
+# Get right directory
+image_dir = "../models/trainingImages" #config.get("image_dir")
+encodingsFile = "../models/face_encodings.pkl"
 
 print("\n####################################################################")
 print("Welcome to the training script for MMM-Faces.")
 print("This tool is used to generate the face encodings for the dlib face recognition algorithm.")
 print("It's not meant to train the classic openCV algorithms.")
 print("####################################################################\n")
-
-# Get right directory
-image_dir = "../models/trainingImages" #config.get("image_dir")
-encodingsFile = "../models/face_encodings.pkl"
 
 if not os.path.isdir(image_dir):
     print("The training directory doesn't exist. Do you want to specify an alternative directory?    [y/n]")
@@ -123,7 +124,7 @@ recognition_counter = 0
 ####################################
 
 encodings = {} # Dictionary with user names as keys  
-face_encoding = np.zero([128])
+face_encoding = np.zeros([128])
 #TODO: Do something different when more than one image is given 
 
 # For each directory in there create a user in user_list 
@@ -131,25 +132,28 @@ user_list = [user_dir[1] for user_dir in os.walk(image_dir)][0] # user_dir[1]: f
 
 for user in user_list:
     #Load list of images in there
-    imageFiles = [file for file in os.listdir(img_dir + "/" + user)]
-    images = [cv2.imread(img) for img in imageFiles]
+    user_dir = image_dir + "/" + user
+    imageFiles = [imageFile for imageFile in os.listdir(user_dir)]
+    images = [cv2.imread(user_dir + "/" + img) for img in imageFiles]
     
     print("Processing images for User " + user + "...")
-    if len(images == 0):
-        print("Skipping User " + user + ": No Images found")
-        user_list.remove(user)
+    if len(images) == 0:
+        print("Skipping User " + user + ": No images found")
+        #user_list.remove(user)
         continue
     elif len(images) == 1:
+        print("One image found")
         start_time = time.time()
         face = face_detector.detect(images[0])
         detection_time += time.time() - start_time
         detection_counter += 1
         
         start_time = time.time()
-        face_encoding = face_recognizer.faceEncoding(face)
+        face_encoding = face_recognizer.faceEncoding(images[0], face)
         encoding_time += time.time() - start_time
         encoding_counter += 1
     else:
+        print("Several images found")
         for img in images:
             start_time = time.time()
             face = face_detector.detect(img)
@@ -157,7 +161,7 @@ for user in user_list:
             detection_counter += 1
         
             start_time = time.time()
-            face_encoding = face_recognizer.faceEncoding(face)
+            face_encoding = face_recognizer.faceEncoding(img, face)
             encoding_time += time.time() - start_time
             encoding_counter += 1
     
@@ -225,8 +229,9 @@ else:
     print("Do a little sanity check: Recognize training images again...")
     for user in user_list:
         #Load list of images in there
-        imageFiles = [file for file in os.listdir(img_dir + "/" + user)]
-        images = [cv2.imread(img) for img in imageFiles]
+        user_dir = image_dir + "/" + user
+        imageFiles = [file for file in os.listdir(user_dir)]
+        images = [cv2.imread(user_dir + "/" *img) for img in imageFiles]
         
         for img in images:
             start_time = time.time()
