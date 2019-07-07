@@ -15,17 +15,8 @@ import platform
 
 class ConfigHandler:
     _platform = platform.uname()[4]
-    #path_to_file = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-    # Size (in pixels) to resize images for training and prediction.
-    # Don't change this unless you also change the size of the training images.
-    #FACE_WIDTH = 92
-    #FACE_HEIGHT = 112
-
-    # Face detection cascade classifier configuration.
-    #HAAR_FACES = path_to_file + '/haarcascade_frontalface.xml'
+    _config_storage = None
     
-    config_storage = None
     def __init__(config_json):
         self.config_storage = json.loads(config_json)#(sys.argv[1])
     
@@ -41,12 +32,10 @@ class ConfigHandler:
         # stdout has to be flushed manually to prevent delays in the node helper communication
         sys.stdout.flush()
 
-
     def shutdown(self, signum):
         to_node("status", 'Shutdown: Cleaning up camera...')
         camera.stop()
         quit()
-
 
     def get_camera():
         to_node("status", "-" * 20)
