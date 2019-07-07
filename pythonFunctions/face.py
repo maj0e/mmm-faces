@@ -193,6 +193,44 @@ class FaceRecognizer_DNN:
     def predict(self):
         return "Unknown"
 
+##### Classifiers ######
+
+class KNN_classifier:
+    """ K-nearest Neighbour Classifier
+        Simple classifier if several  images per person are provided"""
+    
+    _model = 1
+    _k = 1
+    
+    def __init__(self, k = 1):
+        #Do some init
+        self._k = k
+        self._model = cv2.KNearest()
+    
+    def train(trainingData, labels):
+        self._model.train(trainingData, labels)
+
+    def predict(self, face_encoding):
+        return self._model.find_nearest(face_encoding , self._k)
+    
+
+class SVM_classifier:
+    _model = None
+    
+    def __init__(self, classifier_path):
+        #Load 
+        svm = cv.ml.SVM_create()
+        svm.setType(cv.ml.SVM_C_SVC)
+        svm.setKernel(cv.ml.SVM_LINEAR)
+        svm.setTermCriteria((cv.TERM_CRITERIA_MAX_ITER, 100, 1e-6))
+        
+    def train(trainingData, labels):
+        self._model.train(trainingData, cv.ml.ROW_SAMPLE, labels)
+
+    def predict(self, face_encoding):
+        return self._model.predict(face_encoding)
+        
+        
 ##### Utility functions #####
 
 def chooseFace_dlib(faces):
