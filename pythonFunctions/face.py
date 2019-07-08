@@ -7,6 +7,8 @@ Different face detection and recognition algorithms from dlib and openCV wrapped
 import cv2
 import dlib
 import pickle
+import numpy as np
+import sys
 
 ##### Face Detection ################################################
 class FaceDetector_HOG:
@@ -20,7 +22,7 @@ class FaceDetector_HOG:
         self.model = dlib.get_frontal_face_detector() #fastest on CPU
         
     def detect(self, image): 
-        faces =  self.model(image, **self.function_args)
+        faces =  self.model(image, 0)# **self.function_args)
         return chooseFace_dlib(faces)
     
 class FaceDetector_HAAR:
@@ -140,12 +142,12 @@ class FaceRecognizer_DLIB:
     _model = None
     _shape_predictor = None
     _tolerance = 0.6
-    useAlign = True
+    _useAlign = True
     
     face_descriptors = None # Dictionary of all known face encodings
  
-    def __init__(self, model_location, shape_predictor_location, descriptor_location = None):
-        self._model = dlib.face_recognition_model_v1(model_location)
+    def __init__(self, model_location, shape_predictor_location, descriptor_location = None, useAlign = False):
+        self._useAlign = useAlign
         try: 
             self._model = dlib.face_recognition_model_v1(model_location)
             self._shape_predictor = dlib.shape_predictor(shape_predictor_location)
@@ -167,19 +169,26 @@ class FaceRecognizer_DLIB:
     def faceEncoding(self, image, face):
         shape = self._shape_predictor(image, face)
         
-        if useAlign:
+        if self._useAlign:
             face_chip = dlib.get_face_chip(image, shape)
             return self._model.compute_face_descriptor(face_chip)    
         else:
-            return self._model.compute_face_descriptor(img, shape)
+            return self._model.compute_face_descriptor(image, shape)
             
-    def predict(self, face):
-        face_descriptor_in = self.faceEncoding(face)
+    def predict(self, image, face):
+        face_descriptor_in = self.faceEncoding(image, face)
             
         #Compare the obtained face descriptor to the list of descriptors and return the minimum
-        distances = np.linalg.norm(self.face_descriptors - face_descriptor_in, axis=1)
-        if (np.min(distances) < self.tolerance):
-                return np.argmin(distances)
+        min_distance = sys.float_info.max
+        current_user = "Unknown"
+        for name in self.face_descriptors.keys():
+            distance = np.linalg.norm(np.subtract(self.face_descriptors[name], face_descriptor_in))
+            if (distance < min_distance):
+                min_distance = distance
+                current_user = name            
+        
+        if (min_distance < self._tolerance):
+            return current_user
         else:
             return "Unknown"
 

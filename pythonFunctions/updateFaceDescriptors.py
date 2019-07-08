@@ -54,7 +54,7 @@ def webcamSaveImages(name, path, detector):
             count +=1
         elif  key & 0xFF == ord('q'):
             break
-
+    
     # Release handle to the webcam
     cap.release()
     cv2.destroyAllWindows()
@@ -109,6 +109,9 @@ if (takeImages == 'y' or takeImages == "Y"):
     currentUser_dir = image_dir + "/" + currentUser
     pathlib.Path(currentUser_dir).mkdir(exist_ok=True) #Make directory for user
     webcamSaveImages(currentUser, currentUser_dir, face_detector)
+    #if no images were taken and folder is empty, remove the folder
+    if not os.listdir(path):
+        os.rmdir(path)
     
 #####################################################################
 print("Generating Encodings of saved images...\n")
@@ -139,7 +142,6 @@ for user in user_list:
     print("Processing images for User " + user + "...")
     if len(images) == 0:
         print("Skipping User " + user + ": No images found")
-        #user_list.remove(user)
         continue
     elif len(images) == 1:
         print("One image found")
@@ -174,7 +176,7 @@ print("Done!\n")
 #Do some checks
 face_recognizer.face_descriptors = encodings
 nFailures = 0
-print("Do you want to perform some tests, if everything worked?    [y/n]")
+print("Do you want to perform some tests, wether everything worked?    [y/n]")
 performTests = input("--> ")
 if (performTests != "y" and performTests != "Y"):
     print("Skipping tests!")
@@ -227,11 +229,11 @@ elif (takeImages == "y" or takeImages == "Y"):
 
 else:
     print("Do a little sanity check: Recognize training images again...")
-    for user in user_list:
+    for user in encodings.keys():
         #Load list of images in there
         user_dir = image_dir + "/" + user
         imageFiles = [file for file in os.listdir(user_dir)]
-        images = [cv2.imread(user_dir + "/" *img) for img in imageFiles]
+        images = [cv2.imread(user_dir + "/" + img) for img in imageFiles]
         
         for img in images:
             start_time = time.time()
@@ -240,7 +242,7 @@ else:
             detection_counter += 1
             
             start_time = time.time()
-            predictedUser = face_recognizer.predict(face)
+            predictedUser = face_recognizer.predict(img, face)
             recognition_time += time.time() - start_time
             recognition_counter += 1
             
@@ -270,11 +272,11 @@ if (recognition_counter != 0):
     recognition_time = recognition_time / recognition_counter
 
 print("Timing results: ")
-print("     Average time for detection: " + detection_time + "(" + detection_counter + " detections)")
-print("     Average time for generating encodings: " + encoding_time + "(" + encoding_counter + " encodings)")
-print("     Average time for recognition: " + recognition_time + "(" + recognition_counter + " recognized faces)")
+print("     Average time for detection: " + str(detection_time) + "(" + str(detection_counter) + " detections)")
+print("     Average time for generating encodings: " + str(encoding_time) + "(" + str(encoding_counter) + " encodings)")
+print("     Average time for recognition: " + str(recognition_time) + "(" + str(recognition_counter) + " recognized faces)")
 print("####################################################################\n")
 
 print("\nYou're now able to use the face recognition with following users: \n")
-print(*user_list, sep = ", ")
+print(*encodings.keys(), sep = ", ")
 print("\n")
