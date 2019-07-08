@@ -140,6 +140,7 @@ class FaceRecognizer_DLIB:
     _model = None
     _shape_predictor = None
     _tolerance = 0.6
+    useAlign = True
     
     face_descriptors = None # Dictionary of all known face encodings
  
@@ -165,9 +166,13 @@ class FaceRecognizer_DLIB:
    
     def faceEncoding(self, image, face):
         shape = self._shape_predictor(image, face)
-        face_chip = dlib.get_face_chip(image, shape)  
-        return self._model.compute_face_descriptor(face_chip)    
         
+        if useAlign:
+            face_chip = dlib.get_face_chip(image, shape)
+            return self._model.compute_face_descriptor(face_chip)    
+        else:
+            return self._model.compute_face_descriptor(img, shape)
+            
     def predict(self, face):
         face_descriptor_in = self.faceEncoding(face)
             

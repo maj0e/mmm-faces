@@ -75,7 +75,7 @@ def webcamSaveImages(name, path, detector):
 # TODO: For know just use defaults, later on we should use the requested method from config 
 # TODO: Maybe provide fallback if config cant be used.
 face_detector = face.FaceDetector_HOG()
-face_recognizer = face.FaceRecognizer_DLIB("../models/dlib_face_recognition_resnet_model_v1.dat", "../models/dlib_shape_predictor.dat")
+face_recognizer = face.FaceRecognizer_DLIB("../models/dlib_face_recognition_resnet_model_v1.dat", "../models/shape_predictor_5_face_landmarks.dat")
 
 # Get right directory
 image_dir = "../models/trainingImages" #config.get("image_dir")
