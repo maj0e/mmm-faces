@@ -125,7 +125,7 @@ For this module to take effect you have to assign classes to your modules. The d
 ## Optimizations
 Since these algorithms can be quite demanding, especially for small devices like a Raspberry Pi, a few things should be considered.
 
-1. Choose the right algorithm for your device: If you use a Rpi or similar device the default HoG detector should be fine. Consider either Opencv's DNN detector if you're not satisfied with the detection accuracy and your CPU is fast enough (The difference to HoG is not huge, maybe i'ts 30%). Use dlib_cnn only if you have a Cuda enabled device (Probably the best choice on a Nvidida Jetson).
+1. Choose the right algorithm for your device: If you use a Rpi or similar device the default HoG detector should be fine. Consider either Opencv's DNN detector if you're not satisfied with the detection accuracy and your CPU is fast enough (The difference to HoG is not huge, approx. 30%). Use dlib_cnn only if you have a Cuda enabled device (Probably the best choice on a Nvidia Jetson).
 2. Use a recent version of OpenCV and compile it yourself: Especially ARM devices benefit a lot from vectorized code (NEON instructions). In the future I will provide precompiled libraries, at least for the Rpi 
 
 
