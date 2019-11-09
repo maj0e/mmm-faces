@@ -52,11 +52,12 @@ class FaceDetector_DNN:
     model = None                                    # Detection Model: Set in Init
     function_args = None                        # Argument Dictionary passed to detector_function
         
-    def __init__(self, modelFile, configFile):
+    def __init__(self, modelType, modelFile, configFile):
         try:
-            #TODO: Decide for one model --> TF seems to be the winner
-            DNN="TF"
-            if DNN == "CAFFE":
+            if modelType == "ONNX":
+                 #modelFile = "version-320-slim.onnx"
+                self.model = cv2.dnn.readNetFromONNX(modelFile)
+            else if modelType == "CAFFE":
                 #modelFile = "res10_300x300_ssd_iter_140000_fp16.caffemodel"
                 #configFile = "deploy.prototxt"
                 self.model = cv2.dnn.readNetFromCaffe(configFile, modelFile)
@@ -68,7 +69,7 @@ class FaceDetector_DNN:
             if self.model == None:
                 raise ValueError
         except ValueError:
-            print("Could not load openCV DNN model!\n")
+            print("Could not load DNN model into openCV!\n")
     
     # Wrapper for the different detection methods
     def detect(self, image): 
