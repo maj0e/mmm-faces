@@ -11,19 +11,21 @@ the same as the picam.py capture class so it can be used in the box.py code
 without any changes.
 """
 
-import time
-import cv2
 import io
-import numpy as np
-import picamera
 import threading
-
+import time
 from threading import Thread
+
+import numpy as np
+
+import cv2
+import picamera
+
 
 class WebCam_OpenCVCapture(object):
     # Rate at which the webcam will be polled for new images.
     CAPTURE_HZ = 30.0
-    
+
     def __init__(self, device_id=0):
         """Create an OpenCV capture object associated with the provided webcam
         device ID.
@@ -31,7 +33,7 @@ class WebCam_OpenCVCapture(object):
         # Open the camera.
         self._camera = cv2.VideoCapture(device_id)
         # self._camera.set(3,160)
-        #self._camera.set(4,120)
+        # self._camera.set(4,120)
         if not self._camera.isOpened():
             self._camera.open()
         # Start a thread to continuously capture frames.
@@ -68,10 +70,10 @@ class WebCam_OpenCVCapture(object):
                 frame = self._capture_frame
         # Return the capture image data.
         return frame
-        
+
     def stop(self):
-        print '{"status":"Terminating..."}'
-        
+        print('{"status":"Terminating..."}')
+
 
 class PiCam_OpenCVCapture(Thread):
     def __init__(self):
@@ -85,7 +87,9 @@ class PiCam_OpenCVCapture(Thread):
             camera.resolution = (620, 540)
             camera.framerate = 10
             stream = io.BytesIO()
-            for stream in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
+            for stream in camera.capture_continuous(
+                stream, format="jpeg", use_video_port=True
+            ):
                 self.lock.acquire()
                 try:
                     # swap the stream for the buffer
@@ -100,7 +104,6 @@ class PiCam_OpenCVCapture(Thread):
                     break
 
             camera.stop_preview()
-
 
     def read(self):
         """Read a single frame from the camera and return the data as an OpenCV
@@ -119,4 +122,3 @@ class PiCam_OpenCVCapture(Thread):
     def stop(self):
         self.running = False
         self.join()
-

@@ -7,10 +7,12 @@ Several things were added:
     - Dlib's Frontal Face Detector: Pretty good accuracy and very fast on CPU (default)
     - OpenCv's DNN face detector: Highest accuracy (probably) and reasonable fast (even on CPU)
     - Dlib's CNN based Face detector: High accuracy (Use on Cuda enabled devices like Nvidia Jetson)
-- More face recognition algorithms:
-    - Most notable Dlib's face descriptor: Should work with only one example Image per user.
+- Dlib's face descriptor: Should work with only one example Image per user.
 - Option to check for messages from [MMM-PIR-Sensor](https://github.com/paviro/MMM-PIR-Sensor): Stop searching for faces if there is nobody around.
 - Incorporates the [Motion Detection module](https://github.com/dmcinnes/MMM-Motion-Detection), which is also a fork of [MMM-Facial-Recognition](https://github.com/paviro/MMM-Facial-Recognition).
+
+The main goal of this fork was to extend the original [MMM-Facial-Recognition](https://github.com/paviro/MMM-Facial-Recognition) with state-of-the-art algorithms for face detection and recognition. Since [Motion Detection module](https://github.com/dmcinnes/MMM-Motion-Detection) is also a fork of Paviro's work and both modules are not usable at the same time, the opportunity was taken to combine their functionality again.
+
 
 ## Installation
 
@@ -47,7 +49,7 @@ Note that you only have to copy the variables, for which you want to change the 
 {
 	module: 'MMM-Faces',
 	config: {
-        //////////////////////////
+    //////////////////////////
 		// GENERAL VARIABLES    //
 		//////////////////////////
 		// force the use of a usb webcam on raspberry pi (on other platforms this is always true automatically)
@@ -105,7 +107,7 @@ Note that you only have to copy the variables, for which you want to change the 
 }
 ```
 
-For this module to take effect you have to assign classes to your modules. The defaultClass (`default`) is shown if no user or a stranger is detected. The everyoneClass (`everyone`) is shown for all users. To specify modules for a certain user, use their name as classname.
+For this module to take effect you have to assign classes to your modules. The defaultClass (`default`) is shown if a stranger is detected. The everyoneClass (`everyone`) is shown for all users. To specify modules for a certain user, use their name as classname.
 
 ```
 {
@@ -127,6 +129,23 @@ Since these algorithms can be quite demanding, especially for small devices like
 
 1. Choose the right algorithm for your device: If you use a Rpi or similar device the default HoG detector should be fine. Consider either Opencv's DNN detector if you're not satisfied with the detection accuracy and your CPU is fast enough (The difference to HoG is not huge, approx. 30%). Use dlib_cnn only if you have a Cuda enabled device (Probably the best choice on a Nvidia Jetson).
 2. Use a recent version of OpenCV and compile it yourself: Especially ARM devices benefit a lot from vectorized code (NEON instructions). In the future I will provide precompiled libraries, at least for the Rpi 
+
+
+## Description of Algorithms
+This section documents the different algorithms used in this module for those who want to try and explore them. 
+There are basically three categories: Face Detection, Face Recogntion and Visual Triggers:
+
+### Face Detection
+The task of finding the location of faces in an image.
+
+
+### Facce Recognition
+Mapping the found faces to the right person.
+
+### Visual Triggers
+Since the face detection can be quite demanding an additional detection can be used to trigger its execution, such that it doesn't need to run all the time.
+To be useful this visual trigger must be more lightweight than the face detection itself. The 
+Motion Detectiont: 
 
 
 

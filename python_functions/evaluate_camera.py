@@ -14,11 +14,12 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import time
-import face
-import cv2
-import config
 import signal
+import time
+
+import config
+import cv2
+import face
 
 to_node("status", "Facerecognition started...")
 
@@ -34,7 +35,7 @@ interval = config.get("interval")
 
 # Inital Detector and Recognizer
 detector = config.get_detector()
-recognizer =  config.get_recognizer()
+recognizer = config.get_recognizer()
 config.to_node("status", "Facerecognition initialized...")
 
 # get camera
@@ -57,13 +58,13 @@ time_all = 0
 while True:
     # Sleep for x seconds specified in module config
     time.sleep(interval)
-    time_all = time.time() # BENCHMARK
-    #Use PIR Sensor to 
-    motionDetected = True # motion.IsMoving(camera);
-    if (motionDetected == True):
+    time_all = time.time()  # BENCHMARK
+    # Use PIR Sensor to
+    motionDetected = True  # motion.IsMoving(camera);
+    if motionDetected == True:
         lastMotion = time.time()
         detection_active = True
-    
+
     # if detecion is true, will be used to disable detection if you use a PIR sensor and no motion is detected
     if detection_active is True:
         # Get image
@@ -71,52 +72,54 @@ while True:
         # Convert image to grayscale.
         image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         # Get coordinates of single face in captured image.
-        time_detection = time.time() # BENCHMARK
+        time_detection = time.time()  # BENCHMARK
         result = detector.detect(image)
-        time_detection = time_detection - time.time() # BENCHMARK
+        time_detection = time_detection - time.time()  # BENCHMARK
         # No face found, logout user?
         if result is None:
             counter_failed = counter_failed + 1
             # if last detection exceeds timeout and there is someone logged in -> logout!
-            #if (current_user is not None and time.time() - login_timestamp > config.get("logoutDelay")):
-            if (counter_failed > maxFails)
+            # if (current_user is not None and time.time() - login_timestamp > config.get("logoutDelay")):
+            if counter_failed > maxFails:
                 # callback logout to node helper
                 config.to_node("logout", {"user": current_user})
                 same_user_detected_in_row = 0
                 current_user = None
                 detection_active = False
             continue
-        
+
         # Set x,y coordinates, height and width from face detection result
         x, y, w, h = result
-        
+
         # Test face against model.
-        time_recognition = time.time() # BENCHMARK
+        time_recognition = time.time()  # BENCHMARK
         label, confidence = recognizer.predict(crop)
-        time_recognition = time_recognition - time.time() # BENCHMARK
+        time_recognition = time_recognition - time.time()  # BENCHMARK
         # We have a match if the label is not "-1" which equals unknown because of exceeded threshold and is not "0" which are negtive training images (see training folder).
-        if (label != -1 and label != 0):
+        if label != -1 and label != 0:
             # Set login time
             login_timestamp = time.time()
             # Routine to count how many times the same user is detected
-            if (label == last_match and same_user_detected_in_row < 2):
+            if label == last_match and same_user_detected_in_row < 2:
                 # if same user as last time increment same_user_detected_in_row +1
                 same_user_detected_in_row += 1
             if label != last_match:
                 # if the user is diffrent reset same_user_detected_in_row back to 0
                 same_user_detected_in_row = 0
             # A user only gets logged in if he is predicted twice in a row minimizing prediction errors.
-            #TODO: Test if thats necessary
-            if (label != current_user and same_user_detected_in_row > 1):
+            # TODO: Test if thats necessary
+            if label != current_user and same_user_detected_in_row > 1:
                 current_user = label
                 # Callback current user to node helper
-                config.to_node("login", {"user": label, "confidence": str(confidence)})
+                config.to_node(
+                    "login", {"user": label, "confidence": str(confidence)}
+                )
             # set last_match to current prediction
             last_match = label
-            
+
         # if label is -1 or 0, current_user is not already set to unknown and last prediction match was at least 5 seconds ago
         # (to prevent unknown detection of a known user if he moves for example and can't be detected correctly)
-        elif (current_user != 0 and time.time() - login_timestamp > 5):
+        elif current_user != 0 and time.time() - login_timestamp > 5:
             # Set login time
             login_timestamp = time.time()
             # set current_user to unknown
@@ -125,6 +128,5 @@ while True:
             config.to_node("login", {"user": current_user, "confidence": None})
         else:
             continue
-        
-        time_all = time_all - time.time() # BENCHMARK
 
+        time_all = time_all - time.time()  # BENCHMARK
