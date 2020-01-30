@@ -4,12 +4,13 @@
     FaceRecPyPkgs ? pythonPackages: with pythonPackages; [
     numpy
     ipython
-    #opencv4
+    opencv4
     dlib
     tensorflow
     
     # Code qualitiy
     isort black flake8 pylint
+    pip
     
     ],
     opencvGtk ? pkgs.opencv4.override ( old : { enableGtk2 = true; })

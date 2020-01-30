@@ -85,13 +85,13 @@ def webcamSaveImages(name, path, detector):
 # TODO: Maybe provide fallback if config cant be used.
 face_detector = det.FaceDetector_HOG()
 face_recognizer = rec.FaceRecognizer_DLIB(
-    "facelib/models/dlib_face_recognition_resnet_model_v1.dat",
-    "facelib/models/shape_predictor_5_face_landmarks.dat",
+    "facelib/models/recognition/dlib_face_recognition_resnet_model_v1.dat",
+    "facelib/models/recognition/shape_predictor_5_face_landmarks.dat",
 )
 
 # Get right directory
-image_dir = "facelib/models/trainingImages"  # config.get("image_dir")
-encodingsFile = "facelib/models/face_encodings.pkl"
+image_dir = "training/images"  # config.get("image_dir")
+encodingsFile = "training/face_encodings.pkl"
 
 print("\n####################################################################")
 print("Welcome to the training script for MMM-Faces.")

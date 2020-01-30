@@ -1,5 +1,6 @@
 import dlib
-
+from sys import float_info
+from numpy import linalg, subtract
 
 class FaceRecognizer_DLIB:
     """Face Recognition class, which wraps Dlib's face recognizer."""
@@ -52,11 +53,11 @@ class FaceRecognizer_DLIB:
         face_descriptor_in = self.faceEncoding(image, face)
 
         # Compare the obtained face descriptor to the list of descriptors and return the minimum
-        min_distance = sys.float_info.max
+        min_distance = float_info.max
         current_user = "Unknown"
         for name in self.face_descriptors.keys():
-            distance = np.linalg.norm(
-                np.subtract(self.face_descriptors[name], face_descriptor_in)
+            distance = linalg.norm(
+                subtract(self.face_descriptors[name], face_descriptor_in)
             )
             if distance < min_distance:
                 min_distance = distance
