@@ -1,6 +1,6 @@
 FROM dockcross/linux-arm64
 
-ENV DEFAULT_DOCKCROSS_IMAGE rpi3_cross
+ENV DEFAULT_DOCKCROSS_IMAGE crosscompileenv
 
 RUN apt-get update -y && apt-get upgrade -y
 

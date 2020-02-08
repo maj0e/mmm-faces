@@ -2,6 +2,9 @@
 dlib_version=19.17 #Set version of opencv you wish to download
 number_of_cores = 4 #The number of cores you want to use for compiling
 
+# Change directory to build directory
+cd $1
+
 # Download source for dlib
 wget -O dlib.tar.bz2 http://dlib.net/files/dlib-$dlib_version.tar.bz2
 tar xjf dlib.tar.bz2
