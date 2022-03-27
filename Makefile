@@ -45,8 +45,8 @@ build-opencv: create-dockcross
 build-dlib: create-dockcross 
 	${BUILD_DIR}/CrossCompileEnv ./deploy/build_dlib.sh ${BUILD_DIR}
 	
-build-module: build-opencv build-dlib
-	- pyinstaller pythonFunctions
+build-module:# build-opencv build-dlib
+	- ${BUILD_DIR}/CrossCompileEnv pyinstaller pythonFunctions
 
 build: build-module ## Build the module and all dependencies
 

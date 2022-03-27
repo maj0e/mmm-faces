@@ -1,5 +1,5 @@
 {
-    pkgs   ? import <nixpkgs> {},
+    pkgs   ? import <nixpkgs> { system = "aarch64-linux";},
     stdenv ? pkgs.stdenv,
     FaceRecPyPkgs ? pythonPackages: with pythonPackages; [
     numpy
@@ -21,9 +21,9 @@ rec {
     name = "FaceRec";
     version = "dev-0.1";
     buildInputs = with pkgs; [
-      openblas
-      opencvGtk
-      dlib
+      #openblas
+      #opencvGtk
+      #dlib
       python37Packages.Nuitka
       clang
       (python3.withPackages FaceRecPyPkgs)
